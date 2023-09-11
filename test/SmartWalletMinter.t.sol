@@ -4,8 +4,9 @@ pragma solidity ^0.8.10;
 import {Test} from "@forge-std/src/Test.sol";
 import {SmartWalletMinter} from "../src/SmartWalletMinter.sol";
 import {ZoraDropMock} from "./mocks/ZoraDropMock.sol";
+import {ERC6551RegistryMock} from "./mocks/ERC6551RegistryMock.sol";
 
-contract SmartWalletMinterTest is Test {
+contract SmartWalletMinterTest is Test, ERC6551RegistryMock {
     SmartWalletMinter public adapter;
     ZoraDropMock public drop;
     address public DEFAULT_MINTER = address(0x01);
@@ -15,6 +16,7 @@ contract SmartWalletMinterTest is Test {
     function setUp() public {
         adapter = new SmartWalletMinter();
         drop = new ZoraDropMock();
+        _setupErc6551();
     }
 
     function testPurchase(address _to, uint256 _quantity) public {
@@ -26,7 +28,10 @@ contract SmartWalletMinterTest is Test {
             _to,
             _quantity,
             "smart wallet created",
-            DEFAULT_MINT_REFERRAL
+            DEFAULT_MINT_REFERRAL,
+            address(erc6551Registry),
+            address(erc6551Implementation),
+            INIT_DATA
         );
         assertEq(drop.balanceOf(_to), _quantity);
         assertEq(drop.ownerOf(_start), _to);
@@ -41,7 +46,21 @@ contract SmartWalletMinterTest is Test {
     }
 
     function testRegistry(uint256 _quantity, address _to) public {
+        _assumeUint256(_quantity);
+
+        // No ERC6551 before purchase
+        for (uint256 i = 1; i <= _quantity; i++) {
+            address tokenBoundAccount = getTBA(address(drop), i);
+            assertTrue(!isContract(tokenBoundAccount));
+        }
+
         testPurchase(_to, _quantity);
+
+        // All tokens have ERC6551 after purchase
+        for (uint256 i = 1; i <= _quantity; i++) {
+            address tokenBoundAccount = getTBA(address(drop), i);
+            assertTrue(isContract(tokenBoundAccount));
+        }
     }
 
     function _assumeUint256(uint256 _num) internal pure {

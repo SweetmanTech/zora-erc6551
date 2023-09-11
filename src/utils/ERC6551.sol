@@ -27,11 +27,11 @@ contract ERC6551 {
         uint256 _quantity,
         address _registry,
         address _implementation,
-        bytes _initData
+        bytes memory _initData
     ) internal {
         IERC6551Registry registry = IERC6551Registry(_registry);
         for (uint256 i = 0; i < _quantity; i++) {
-            address smartWallet = registry.createAccount(
+            registry.createAccount(
                 _implementation,
                 block.chainid,
                 _target,
