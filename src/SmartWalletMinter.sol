@@ -9,35 +9,23 @@ pragma solidity ^0.8.10;
 ███████║╚███╔███╔╝███████╗███████╗   ██║   ██║ ╚═╝ ██║██║  ██║██║ ╚████║██╗███████╗   ██║   ██║  ██║
 ╚══════╝ ╚══╝╚══╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝                                                                                              
 */
-import {IDCNT721A} from "./interfaces/IDCNT721A.sol";
+import {IERC721Drop} from "./interfaces/IERC721Drop.sol";
+import {IERC721A} from "@ERC721A/contracts/IERC721A.sol";
 
-contract DCNTCrossmintAdapter {
-    /// @notice mint target DCNT721A
-    /// @param _target DCNT721A contract address
+contract SmartWalletMinter {
+    /// @notice mint target ERC721Drop
+    /// @param _target ERC721Drop contract address
     /// @param _quantity number of tokens
     /// @param _to recipient of tokens
-    function mint(
+    function purchase(
         address _target,
         uint256 _quantity,
         address _to
     ) public payable {
-        IDCNT721A erc721 = IDCNT721A(_target);
-        uint256 start = erc721.totalSupply();
-        erc721.mint{value: msg.value}(_quantity);
+        IERC721Drop erc721 = IERC721Drop(_target);
+        uint256 start = erc721.purchase{value: msg.value}(_quantity) + 1;
         for (uint256 i = start; i < start + _quantity; i++) {
-            erc721.transferFrom(address(this), _to, i);
+            IERC721A(_target).transferFrom(address(this), _to, i);
         }
-    }
-
-    /**
-     * Always returns `IERC721Receiver.onERC721Received.selector`.
-     */
-    function onERC721Received(
-        address _operator,
-        address _from,
-        uint256 _tokenId,
-        bytes memory _data
-    ) external pure returns (bytes4) {
-        return this.onERC721Received.selector;
     }
 }

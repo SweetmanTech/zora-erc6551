@@ -2,17 +2,17 @@
 pragma solidity ^0.8.10;
 
 import {Test} from "@forge-std/src/Test.sol";
-import {ChillDropCrossmintAdapter} from "../src/ChillDropCrossmintAdapter.sol";
+import {SmartWalletMinter} from "../src/SmartWalletMinter.sol";
 import {ZoraDropMock} from "./mocks/ZoraDropMock.sol";
 
-contract ChillDropCrossmintAdapterTest is Test {
-    ChillDropCrossmintAdapter public adapter;
+contract SmartWalletMinterTest is Test {
+    SmartWalletMinter public adapter;
     ZoraDropMock public drop;
     address public DEFAULT_MINTER = address(0x01);
     address public DEFAULT_MINTER_TWO = address(0x02);
 
     function setUp() public {
-        adapter = new ChillDropCrossmintAdapter();
+        adapter = new SmartWalletMinter();
         drop = new ZoraDropMock();
     }
 
