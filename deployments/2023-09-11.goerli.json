@@ -1,8 +1,8 @@
 {
   "deploy": {
-    "deployedTo": "0xFC32Bf3Ef195125185894013d04dBe26c280029F",
+    "deployedTo": "0xE582DB15b2257D9C9BD8B1f3E8659E8ea67980C8",
     "deployer": "0x35CE1fb8CAa3758190ac65EDbcBC9647b8800e8f",
-    "transactionHash": "0x98e2fb443b9235b64b8c3b1c90a2a81a929676bee7052268c1ebcdae836be6b9"
+    "transactionHash": "0x355540d21598cc38cc6bf5dd00810d2200a4492c1660cabc6e51f1cb9438bc18"
   },
   "contractName": "SmartWalletMinter",
   "contractPath": "src/SmartWalletMinter.sol",
