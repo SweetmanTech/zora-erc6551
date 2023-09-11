@@ -3,24 +3,17 @@ pragma solidity ^0.8.15;
 
 import {IERC6551Registry} from "lib/ERC6551/src/interfaces/IERC6551Registry.sol";
 
-/*
-███████╗██╗    ██╗███████╗███████╗████████╗███╗   ███╗ █████╗ ███╗   ██╗   ███████╗████████╗██╗  ██╗
-██╔════╝██║    ██║██╔════╝██╔════╝╚══██╔══╝████╗ ████║██╔══██╗████╗  ██║   ██╔════╝╚══██╔══╝██║  ██║
-███████╗██║ █╗ ██║█████╗  █████╗     ██║   ██╔████╔██║███████║██╔██╗ ██║   █████╗     ██║   ███████║
-╚════██║██║███╗██║██╔══╝  ██╔══╝     ██║   ██║╚██╔╝██║██╔══██║██║╚██╗██║   ██╔══╝     ██║   ██╔══██║
-███████║╚███╔███╔╝███████╗███████╗   ██║   ██║ ╚═╝ ██║██║  ██║██║ ╚████║██╗███████╗   ██║   ██║  ██║
-╚══════╝ ╚══╝╚══╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝                                                                                              
-*/
-/// @title ERC6551 contract for handling ERC6551 token-bound accounts.
+/// @title ERC6551
+/// @notice A contract for creating ERC6551 token-bound accounts.
 contract ERC6551 {
-    /// @notice Creates Token Bound Accounts (TBA) with ERC6551.
-    /// @dev Internal function used to create TBAs for a given ERC721 contract.
-    /// @param _target Target ERC721 contract address.
-    /// @param _startTokenId Token ID to start from.
-    /// @param _quantity Number of token-bound accounts to create.
-    /// @param _registry Number of token-bound accounts to create.
-    /// @param _implementation Number of token-bound accounts to create.
-    /// @param _initData Number of token-bound accounts to create.
+    /// @notice Creates a specified number of token-bound accounts starting from a given token ID.
+    /// @dev This is an internal function that interacts with the ERC6551 registry to create token-bound accounts.
+    /// @param _target The target ERC721 contract address where the token-bound accounts will be created.
+    /// @param _startTokenId The token ID to start creating token-bound accounts from.
+    /// @param _quantity The number of token-bound accounts to create.
+    /// @param _registry The address of the ERC6551 registry contract to use for creating token-bound accounts.
+    /// @param _implementation The address of the contract implementation to use for creating token-bound accounts.
+    /// @param _initData Initialization data to be used when creating each token-bound account.
     function createTokenBoundAccounts(
         address _target,
         uint256 _startTokenId,
