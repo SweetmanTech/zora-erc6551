@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import {IMetadataRenderer} from "./IMetadataRenderer.sol";
+import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 
 /**
 
@@ -29,6 +29,25 @@ interface IERC721Drop {
     error Access_WithdrawNotAllowed();
     /// @notice Cannot withdraw funds due to ETH send failure.
     error Withdraw_FundsSendFailure();
+    /// @notice Mint fee send failure
+    error MintFee_FundsSendFailure();
+    /// @notice Protocol Rewards withdraw failure
+    error ProtocolRewards_WithdrawSendFailure();
+
+    /// @notice Call to external metadata renderer failed.
+    error ExternalMetadataRenderer_CallFailed();
+
+    /// @notice Thrown when the operator for the contract is not allowed
+    /// @dev Used when strict enforcement of marketplaces for creator royalties is desired.
+    error OperatorNotAllowed(address operator);
+
+    /// @notice Thrown when there is no active market filter DAO address supported for the current chain
+    /// @dev Used for enabling and disabling filter for the given chain.
+    error MarketFilterDAOAddressNotSupportedForChain();
+
+    /// @notice Used when the operator filter registry external call fails
+    /// @dev Used for bubbling error up to clients.
+    error RemoteOperatorFilterRegistryCallFailed();
 
     // Sale/Purchase errors
     /// @notice Sale is inactive
@@ -53,6 +72,18 @@ interface IERC721Drop {
     error Admin_InvalidUpgradeAddress(address proposedAddress);
     /// @notice Unable to finalize an edition not marked as open (size set to uint64_max_value)
     error Admin_UnableToFinalizeNotOpenEdition();
+    /// @notice Cannot reserve every mint for admin
+    error InvalidMintSchedule();
+
+    /// @notice Event emitted for mint fee payout
+    /// @param mintFeeAmount amount of the mint fee
+    /// @param mintFeeRecipient recipient of the mint fee
+    /// @param success if the payout succeeded
+    event MintFeePayout(
+        uint256 mintFeeAmount,
+        address mintFeeRecipient,
+        bool success
+    );
 
     /// @notice Event emitted for each sale
     /// @param to address sale was made to
@@ -64,6 +95,20 @@ interface IERC721Drop {
         uint256 indexed quantity,
         uint256 indexed pricePerToken,
         uint256 firstPurchasedTokenId
+    );
+
+    /// @notice Event emitted for each sale
+    /// @param sender address sale was made to
+    /// @param tokenContract address of the token contract
+    /// @param tokenId first purchased token ID (to get range add to quantity for max)
+    /// @param quantity quantity of the minted nfts
+    /// @param comment caller provided comment
+    event MintComment(
+        address indexed sender,
+        address indexed tokenContract,
+        uint256 indexed tokenId,
+        uint256 quantity,
+        string comment
     );
 
     /// @notice Sales configuration has been changed
@@ -83,10 +128,14 @@ interface IERC721Drop {
     /// @param withdrawnBy address that issued the withdraw
     /// @param withdrawnTo address that the funds were withdrawn to
     /// @param amount amount that was withdrawn
+    /// @param feeRecipient user getting withdraw fee (if any)
+    /// @param feeAmount amount of the fee getting sent (if any)
     event FundsWithdrawn(
         address indexed withdrawnBy,
         address indexed withdrawnTo,
-        uint256 amount
+        uint256 amount,
+        address feeRecipient,
+        uint256 feeAmount
     );
 
     /// @notice Event emitted when an open mint is finalized and further minting is closed forever on the contract.
@@ -98,6 +147,24 @@ interface IERC721Drop {
     /// @param sender address of the updater
     /// @param renderer new metadata renderer address
     event UpdatedMetadataRenderer(address sender, IMetadataRenderer renderer);
+
+    /// @notice Admin function to update the sales configuration settings
+    /// @param publicSalePrice public sale price in ether
+    /// @param maxSalePurchasePerAddress Max # of purchases (public) per address allowed
+    /// @param publicSaleStart unix timestamp when the public sale starts
+    /// @param publicSaleEnd unix timestamp when the public sale ends (set to 0 to disable)
+    /// @param presaleStart unix timestamp when the presale starts
+    /// @param presaleEnd unix timestamp when the presale ends
+    /// @param presaleMerkleRoot merkle root for the presale information
+    function setSaleConfiguration(
+        uint104 publicSalePrice,
+        uint32 maxSalePurchasePerAddress,
+        uint64 publicSaleStart,
+        uint64 publicSaleEnd,
+        uint64 presaleStart,
+        uint64 presaleEnd,
+        bytes32 presaleMerkleRoot
+    ) external;
 
     /// @notice General configuration for NFT Minting and bookkeeping
     struct Configuration {
@@ -116,31 +183,6 @@ interface IERC721Drop {
     struct SalesConfiguration {
         /// @dev Public sale price (max ether value > 1000 ether with this value)
         uint104 publicSalePrice;
-        /// @notice Purchase mint limit per address (if set to 0 === unlimited mints)
-        /// @dev Max purchase number per txn (90+32 = 122)
-        uint32 maxSalePurchasePerAddress;
-        /// @dev uint64 type allows for dates into 292 billion years
-        /// @notice Public sale start timestamp (136+64 = 186)
-        uint64 publicSaleStart;
-        /// @notice Public sale end timestamp (186+64 = 250)
-        uint64 publicSaleEnd;
-        /// @notice Presale start timestamp
-        /// @dev new storage slot
-        uint64 presaleStart;
-        /// @notice Presale end timestamp
-        uint64 presaleEnd;
-        /// @notice Presale merkle root
-        bytes32 presaleMerkleRoot;
-    }
-
-    /// @notice Sales states and configuration
-    /// @dev Uses 3 storage slots
-    struct ERC20SalesConfiguration {
-        /// @notice Public sale price
-        /// @dev max ether value > 1000 ether with this value
-        uint104 publicSalePrice;
-        /// @dev ERC20 Token
-        address erc20PaymentToken;
         /// @notice Purchase mint limit per address (if set to 0 === unlimited mints)
         /// @dev Max purchase number per txn (90+32 = 122)
         uint32 maxSalePurchasePerAddress;
@@ -182,34 +224,6 @@ interface IERC721Drop {
         uint256 maxSupply;
     }
 
-    /// @notice Return value for sales details to use with front-ends
-    struct ERC20SaleDetails {
-        /// @notice Synthesized status variables for sale
-        bool publicSaleActive;
-        /// @notice Synthesized status variables for presale
-        bool presaleActive;
-        /// @notice Price for public sale
-        uint256 publicSalePrice;
-        /// @notice ERC20 contract address for payment. address(0) for ETH.
-        address erc20PaymentToken;
-        /// @notice public sale start
-        uint64 publicSaleStart;
-        /// @notice public sale end
-        uint64 publicSaleEnd;
-        /// @notice Timed sale actions for presale start
-        uint64 presaleStart;
-        /// @notice Timed sale actions for presale end
-        uint64 presaleEnd;
-        /// @notice Merkle root (includes address, quantity, and price data for each entry)
-        bytes32 presaleMerkleRoot;
-        /// @notice Limit public sale to a specific number of mints per wallet
-        uint256 maxSalePurchasePerAddress;
-        /// @notice Total that have been minted
-        uint256 totalMinted;
-        /// @notice The total supply available
-        uint256 maxSupply;
-    }
-
     /// @notice Return type of specific mint counts and details per address
     struct AddressMintDetails {
         /// Number of total mints from the given address
@@ -239,14 +253,13 @@ interface IERC721Drop {
     ) external payable returns (uint256);
 
     /// @notice Function to return the global sales details for the given drop
-    function saleDetails() external view returns (ERC20SaleDetails memory);
+    function saleDetails() external view returns (SaleDetails memory);
 
     /// @notice Function to return the specific sales details for a given address
     /// @param minter address for minter to return mint information for
-    function mintedPerAddress(address minter)
-        external
-        view
-        returns (AddressMintDetails memory);
+    function mintedPerAddress(
+        address minter
+    ) external view returns (AddressMintDetails memory);
 
     /// @notice This is the opensea/public owner setting that can be set by the contract admin
     function owner() external view returns (address);

@@ -9,23 +9,26 @@ pragma solidity ^0.8.10;
 ███████║╚███╔███╔╝███████╗███████╗   ██║   ██║ ╚═╝ ██║██║  ██║██║ ╚████║██╗███████╗   ██║   ██║  ██║
 ╚══════╝ ╚══╝╚══╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝                                                                                              
 */
-import {IERC721Drop} from "./interfaces/IERC721Drop.sol";
-import {IERC721A} from "@ERC721A/contracts/IERC721A.sol";
+import {IRewardsDrop} from "./interfaces/IRewardsDrop.sol";
 
 contract SmartWalletMinter {
     /// @notice mint target ERC721Drop
     /// @param _target ERC721Drop contract address
     /// @param _quantity number of tokens
     /// @param _to recipient of tokens
-    function purchase(
+    function mintWithRewards(
         address _target,
+        address _to,
         uint256 _quantity,
-        address _to
+        string memory _comment,
+        address _mintReferral
     ) public payable {
-        IERC721Drop erc721 = IERC721Drop(_target);
-        uint256 start = erc721.purchase{value: msg.value}(_quantity) + 1;
-        for (uint256 i = start; i < start + _quantity; i++) {
-            IERC721A(_target).transferFrom(address(this), _to, i);
-        }
+        IRewardsDrop erc721 = IRewardsDrop(_target);
+        uint256 start = erc721.mintWithRewards{value: msg.value}(
+            _to,
+            _quantity,
+            _comment,
+            _mintReferral
+        ) + 1;
     }
 }

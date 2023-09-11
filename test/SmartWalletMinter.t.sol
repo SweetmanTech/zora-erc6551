@@ -10,29 +10,47 @@ contract SmartWalletMinterTest is Test {
     ZoraDropMock public drop;
     address public DEFAULT_MINTER = address(0x01);
     address public DEFAULT_MINTER_TWO = address(0x02);
+    address public DEFAULT_MINT_REFERRAL = address(0x0333);
 
     function setUp() public {
         adapter = new SmartWalletMinter();
         drop = new ZoraDropMock();
     }
 
-    function testPurchase() public {
-        uint256 quantity = 1;
-        vm.startPrank(DEFAULT_MINTER);
-        uint256 start = drop.purchase(quantity);
-        assertEq(drop.balanceOf(DEFAULT_MINTER), quantity);
-        adapter.purchase(address(drop), quantity, DEFAULT_MINTER);
-        assertEq(drop.balanceOf(DEFAULT_MINTER), 2 * quantity);
+    function testPurchase(address _to, uint256 _quantity) public {
+        _assumeUint256(_quantity);
+        _assumeAddress(_to);
+        assertEq(drop.balanceOf(_to), 0);
+        adapter.mintWithRewards(
+            address(drop),
+            _to,
+            _quantity,
+            "smart wallet created",
+            DEFAULT_MINT_REFERRAL
+        );
+        assertEq(drop.balanceOf(_to), _quantity);
     }
 
-    function testPurchaseMany() public {
-        uint256 quantity = 100;
-        vm.startPrank(DEFAULT_MINTER);
-        uint256 start = drop.purchase(quantity);
-        adapter.purchase(address(drop), quantity, DEFAULT_MINTER_TWO);
-        assertEq(drop.balanceOf(DEFAULT_MINTER), quantity);
+    function testPurchaseMany(uint256 _quantity, address _thirdMinter) public {
+        testPurchase(DEFAULT_MINTER, _quantity);
+        assertEq(drop.balanceOf(DEFAULT_MINTER), _quantity);
         assertEq(drop.ownerOf(1), DEFAULT_MINTER);
-        assertEq(drop.balanceOf(DEFAULT_MINTER_TWO), quantity);
-        assertEq(drop.ownerOf(101), DEFAULT_MINTER_TWO);
+
+        testPurchase(DEFAULT_MINTER_TWO, _quantity);
+        assertEq(drop.balanceOf(DEFAULT_MINTER_TWO), _quantity);
+        assertEq(drop.ownerOf(_quantity * 2), DEFAULT_MINTER_TWO);
+
+        testPurchase(_thirdMinter, _quantity);
+        assertEq(drop.balanceOf(_thirdMinter), _quantity);
+        assertEq(drop.ownerOf(_quantity * 3), _thirdMinter);
+    }
+
+    function _assumeUint256(uint256 _num) internal pure {
+        vm.assume(_num > 0);
+        vm.assume(_num < 100);
+    }
+
+    function _assumeAddress(address wallet) internal pure {
+        vm.assume(wallet != address(0));
     }
 }
