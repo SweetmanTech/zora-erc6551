@@ -37,4 +37,33 @@ contract ZoraDropMock is ERC721A {
     function _startTokenId() internal pure override returns (uint256) {
         return 1;
     }
+
+    /// @notice Mint a quantity of tokens with a comment that will pay out rewards
+    /// @param recipient recipient of the tokens
+    /// @param quantity quantity to purchase
+    /// @param comment comment to include in the IERC721Drop.Sale event
+    /// @param mintReferral The finder of the mint
+    /// @return tokenId of the first token minted
+    function mintWithRewards(
+        address recipient,
+        uint256 quantity,
+        string calldata comment,
+        address mintReferral
+    ) external payable returns (uint256) {
+        return
+            _handleMintWithRewards(recipient, quantity, comment, mintReferral);
+    }
+
+    function _handleMintWithRewards(
+        address recipient,
+        uint256 quantity,
+        string memory,
+        address
+    ) internal returns (uint256) {
+        _mintNFTs(recipient, quantity);
+
+        uint256 firstMintedTokenId = _lastMintedTokenId() - quantity;
+
+        return firstMintedTokenId;
+    }
 }
