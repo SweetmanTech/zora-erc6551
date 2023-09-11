@@ -1,3 +1,4 @@
 @openzeppelin/=lib/openzeppelin-contracts/
 @ERC721A/=lib/ERC721A/
 @forge-std/=lib/forge-std/
+erc6551=lib/ERC6551/src/
