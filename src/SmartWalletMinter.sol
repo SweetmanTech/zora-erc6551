@@ -22,13 +22,15 @@ contract SmartWalletMinter {
         uint256 _quantity,
         string memory _comment,
         address _mintReferral
-    ) public payable {
+    ) public payable returns (uint256 start) {
         IRewardsDrop erc721 = IRewardsDrop(_target);
-        uint256 start = erc721.mintWithRewards{value: msg.value}(
-            _to,
-            _quantity,
-            _comment,
-            _mintReferral
-        ) + 1;
+        start =
+            erc721.mintWithRewards{value: msg.value}(
+                _to,
+                _quantity,
+                _comment,
+                _mintReferral
+            ) +
+            1;
     }
 }

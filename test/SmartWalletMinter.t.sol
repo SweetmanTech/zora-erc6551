@@ -21,7 +21,7 @@ contract SmartWalletMinterTest is Test {
         _assumeUint256(_quantity);
         _assumeAddress(_to);
         assertEq(drop.balanceOf(_to), 0);
-        adapter.mintWithRewards(
+        uint256 _start = adapter.mintWithRewards(
             address(drop),
             _to,
             _quantity,
@@ -29,20 +29,19 @@ contract SmartWalletMinterTest is Test {
             DEFAULT_MINT_REFERRAL
         );
         assertEq(drop.balanceOf(_to), _quantity);
+        assertEq(drop.ownerOf(_start), _to);
     }
 
-    function testPurchaseMany(uint256 _quantity, address _thirdMinter) public {
+    function testPurchaseMany(uint256 _quantity, address _to) public {
+        vm.assume(_to != DEFAULT_MINTER);
+        vm.assume(_to != DEFAULT_MINTER_TWO);
         testPurchase(DEFAULT_MINTER, _quantity);
-        assertEq(drop.balanceOf(DEFAULT_MINTER), _quantity);
-        assertEq(drop.ownerOf(1), DEFAULT_MINTER);
-
         testPurchase(DEFAULT_MINTER_TWO, _quantity);
-        assertEq(drop.balanceOf(DEFAULT_MINTER_TWO), _quantity);
-        assertEq(drop.ownerOf(_quantity * 2), DEFAULT_MINTER_TWO);
+        testPurchase(_to, _quantity);
+    }
 
-        testPurchase(_thirdMinter, _quantity);
-        assertEq(drop.balanceOf(_thirdMinter), _quantity);
-        assertEq(drop.ownerOf(_quantity * 3), _thirdMinter);
+    function testRegistry(uint256 _quantity, address _to) public {
+        testPurchase(_to, _quantity);
     }
 
     function _assumeUint256(uint256 _num) internal pure {
