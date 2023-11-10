@@ -2,26 +2,29 @@
 pragma solidity ^0.8.10;
 
 import {ERC6551Registry} from "lib/ERC6551/src/ERC6551Registry.sol";
-import {Account} from "lib/tokenbound/src/Account.sol";
+import {AccountV3} from "lib/tokenbound/src/AccountV3.sol";
 import {AccountGuardian} from "lib/tokenbound/src/AccountGuardian.sol";
 import {EntryPoint} from "lib/account-abstraction/contracts/core/EntryPoint.sol";
+import {Multicall3} from "lib/multicall-authenticated/src/Multicall3.sol";
 
 contract ERC6551RegistryMock {
-    bytes INIT_DATA = bytes("0x8129fc1c");
-
     // ERC6551
     ERC6551Registry erc6551Registry;
     AccountGuardian guardian;
+    Multicall3 forwarder;
     EntryPoint entryPoint;
-    Account erc6551Implementation;
+    AccountV3 erc6551Implementation;
 
     function _setupErc6551() internal {
         erc6551Registry = new ERC6551Registry();
-        guardian = new AccountGuardian();
+        guardian = new AccountGuardian(address(0));
+        forwarder = new Multicall3();
         entryPoint = new EntryPoint();
-        erc6551Implementation = new Account(
-            address(guardian),
-            address(entryPoint)
+        erc6551Implementation = new AccountV3(
+            address(entryPoint),
+            address(forwarder),
+            address(erc6551Registry),
+            address(guardian)
         );
     }
 
@@ -40,10 +43,10 @@ contract ERC6551RegistryMock {
         address payable tokenBoundAccount = payable(
             erc6551Registry.account(
                 address(erc6551Implementation),
+                0,
                 block.chainid,
                 _target,
-                tokenId,
-                0
+                tokenId
             )
         );
         return tokenBoundAccount;

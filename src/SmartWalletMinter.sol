@@ -17,7 +17,6 @@ contract SmartWalletMinter is Enjoy, ERC6551 {
     /// @param _mintReferral The address for mint referral.
     /// @param _registry The registry address.
     /// @param _implementation The implementation address.
-    /// @param _initData The initialization data for creating token-bound accounts.
     /// @return start The starting index for the created token-bound accounts.
     function mintWithRewards(
         address _target,
@@ -26,8 +25,7 @@ contract SmartWalletMinter is Enjoy, ERC6551 {
         string memory _comment,
         address _mintReferral,
         address _registry,
-        address _implementation,
-        bytes memory _initData
+        address _implementation
     ) public payable returns (uint256 start) {
         IZoraRewardsMint drop = IZoraRewardsMint(_target);
         start =
@@ -43,8 +41,7 @@ contract SmartWalletMinter is Enjoy, ERC6551 {
             start,
             _quantity,
             _registry,
-            _implementation,
-            _initData
+            _implementation
         );
     }
 }

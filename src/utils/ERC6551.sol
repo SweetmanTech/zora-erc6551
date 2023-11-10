@@ -13,24 +13,21 @@ contract ERC6551 {
     /// @param _quantity The number of token-bound accounts to create.
     /// @param _registry The address of the ERC6551 registry contract to use for creating token-bound accounts.
     /// @param _implementation The address of the contract implementation to use for creating token-bound accounts.
-    /// @param _initData Initialization data to be used when creating each token-bound account.
     function createTokenBoundAccounts(
         address _target,
         uint256 _startTokenId,
         uint256 _quantity,
         address _registry,
-        address _implementation,
-        bytes memory _initData
+        address _implementation
     ) internal {
         IERC6551Registry registry = IERC6551Registry(_registry);
         for (uint256 i = 0; i < _quantity; i++) {
             registry.createAccount(
                 _implementation,
+                0,
                 block.chainid,
                 _target,
-                _startTokenId + i,
-                0,
-                _initData
+                _startTokenId + i
             );
         }
     }
