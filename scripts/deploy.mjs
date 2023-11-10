@@ -7,12 +7,7 @@ dotenv.config({
   path: `.env.${process.env.CHAIN}`,
 });
 
-export async function deployMinter(
-  _cre8orAddress,
-  _erc6551Registry,
-  _erc6551AccountImplementation,
-  _referralFee
-) {
+export async function deployMinter() {
   console.log("deploying smart wallet minter");
   const contractLocation = "src/SmartWalletMinter.sol:SmartWalletMinter";
   const args = [];
