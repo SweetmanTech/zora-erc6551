@@ -30,8 +30,7 @@ contract SmartWalletMinterTest is Test, ERC6551RegistryMock {
             "smart wallet created",
             DEFAULT_MINT_REFERRAL,
             address(erc6551Registry),
-            address(erc6551Implementation),
-            INIT_DATA
+            address(erc6551Implementation)
         );
         assertEq(drop.balanceOf(_to), _quantity);
         assertEq(drop.ownerOf(_start), _to);
