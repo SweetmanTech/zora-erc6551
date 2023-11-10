@@ -6,4 +6,4 @@
 ### Verified deployments
 
 - find latest deployments in `/addresses`
-- `goerli`: [0x209ad67ff728744383ea856be52e32a70fbcc664](https://goerli.etherscan.io/address/0x209ad67ff728744383ea856be52e32a70fbcc664#code)
+- `goerli`: [0xFf7767D80E23EE9c5aBbf871E90829D0374eF11D](https://goerli.etherscan.io/address/0xFf7767D80E23EE9c5aBbf871E90829D0374eF11D#code)
