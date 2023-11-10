@@ -16,3 +16,6 @@
 [submodule "lib/account-abstraction"]
 	path = lib/account-abstraction
 	url = https://github.com/eth-infinitism/account-abstraction
+[submodule "lib/lib/multicall-authenticated"]
+	path = lib/lib/multicall-authenticated
+	url = https://github.com/jaydenwindle/multicall-authenticated
